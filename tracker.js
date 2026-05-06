@@ -48,19 +48,32 @@ app.post('/track', (req, res) => {
         items
     } = req.body;
 
-    // 🔐 простая защита
     if (!phone && !email) {
         return res.status(400).json({ error: 'Invalid data' });
     }
 
     const created_at = new Date();
 
-    const itemsText = Array.isArray(items)
-        ? items.map(i => `${i.name} x${i.qty}`).join(', ')
-        : '';
+    // =========================
+    // 🧠 ОБРАБОТКА ТОВАРОВ С КАРТИНКАМИ
+    // =========================
+    let itemsText = '';
+    let itemsDetailed = [];
+
+    if (Array.isArray(items)) {
+        itemsDetailed = items.map(i => ({
+            name: i.name,
+            qty: i.qty,
+            image: i.image || ''
+        }));
+
+        itemsText = itemsDetailed
+            .map(i => `${i.name} x${i.qty}`)
+            .join(', ');
+    }
 
     // =========================
-    // 🗂️ ЛОГ В ФАЙЛ (ВМЕСТО БАЗЫ)
+    // 🗂️ ЛОГ В ФАЙЛ
     // =========================
     const log = {
         order_id,
@@ -68,7 +81,7 @@ app.post('/track', (req, res) => {
         phone,
         email,
         total,
-        items: itemsText,
+        items: itemsDetailed,
         created_at
     };
 
@@ -78,19 +91,28 @@ app.post('/track', (req, res) => {
     );
 
     // =========================
-    // 🤖 TELEGRAM
+    // 🤖 TELEGRAM (С КАРТИНКАМИ)
     // =========================
-    sendToTelegram(`
-  <b>Новый заказ 🤑</b>
+    let telegramText = `
+<b>Новый заказ 🤑</b>
 
 👤 <b>Имя:</b> ${name || '-'}
 📞 <b>Телефон:</b> ${phone || '-'}
 📧 <b>Email:</b> ${email || '-'}
 💰 <b>Сумма:</b> ${total || '-'}
-🛒 <b>Товары:</b> ${itemsText || '-'}
+🛒 <b>Товары:</b>
+`;
 
-🕒 ${created_at}
-    `);
+    itemsDetailed.forEach(item => {
+        telegramText += `
+• ${item.name} x${item.qty}
+${item.image ? item.image : ''}
+`;
+    });
+
+    telegramText += `\n🕒 ${created_at}`;
+
+    sendToTelegram(telegramText);
 
     console.log('ORDER RECEIVED:', log);
 
