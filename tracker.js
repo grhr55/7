@@ -16,7 +16,7 @@ const BOT_TOKEN = '8685099869:AAFt96aUAMtjZk-Ga1KReroDmpPpTd9y5hI';
 const CHAT_ID = '@zakazhyh';
 
 // =========================
-// 🤖 TEXT MESSAGE
+// 🤖 TELEGRAM TEXT
 // =========================
 async function sendToTelegram(text) {
     try {
@@ -35,111 +35,75 @@ async function sendToTelegram(text) {
 }
 
 // =========================
-// 📸 ALBUM (ФОТО ТОВАРОВ)
+// 📸 TELEGRAM PHOTO
 // =========================
-async function sendAlbum(items) {
+async function sendPhoto(url, caption = '') {
     try {
-
-        const media = items
-            .filter(i => i.image)
-            .map((i, index) => ({
-                type: "photo",
-                media: i.image,
-                caption: `🛒 ${i.name} x${i.qty}`
-            }));
-
-        if (media.length === 0) return;
-
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                media: media
+                photo: url,
+                caption,
+                parse_mode: "HTML"
             })
         });
-
     } catch (e) {
-        console.error('Telegram album error:', e);
+        console.error('Photo error:', e);
     }
 }
 
 // =========================
-// 🚀 API
+// 🚀 TRACK ENDPOINT
 // =========================
-app.post('/track', (req, res) => {
+app.post('/track', async (req, res) => {
 
     const {
-        order_id,
+        event,
+        product_id,
         name,
-        phone,
-        email,
-        total,
-        items
+        price,
+        image,
+        time
     } = req.body;
 
-    if (!phone && !email) {
-        return res.status(400).json({ error: 'Invalid data' });
-    }
-
-    const created_at = new Date();
-
     // =========================
-    // 🧠 ОБРАБОТКА ТОВАРОВ С КАРТИНКАМИ
-    // =========================
-    let itemsText = '';
-    let itemsDetailed = [];
-
-    if (Array.isArray(items)) {
-        itemsDetailed = items.map(i => ({
-            name: i.name,
-            qty: i.qty,
-            image: i.image || ''
-        }));
-
-        itemsText = itemsDetailed
-            .map(i => `${i.name} x${i.qty}`)
-            .join(', ');
-    }
-
-    // =========================
-    // 🗂️ ЛОГ В ФАЙЛ
+    // 🗂 LOG FILE
     // =========================
     const log = {
-        order_id,
+        event,
+        product_id,
         name,
-        phone,
-        email,
-        total,
-        items: itemsDetailed,
-        created_at
+        price,
+        image,
+        time: time || new Date().toISOString()
     };
 
-    fs.appendFileSync(
-        'orders.log',
-        JSON.stringify(log) + '\n'
-    );
+    fs.appendFileSync('events.log', JSON.stringify(log) + '\n');
 
     // =========================
-    // 🤖 TELEGRAM (С КАРТИНКАМИ)
+    // 🤖 TELEGRAM MESSAGE
     // =========================
-    let telegramText = `
-<b>Новый заказ 🤑</b>
+    let text = `
+<b>🛒 Событие: ${event || 'unknown'}</b>
 
-👤 <b>Имя:</b> ${name || '-'}
-📞 <b>Телефон:</b> ${phone || '-'}
-📧 <b>Email:</b> ${email || '-'}
-💰 <b>Сумма:</b> ${total || '-'}
-🛒 <b>Товары:</b>
+🆔 ID: ${product_id || '-'}
+📦 Название: ${name || '-'}
+💰 Цена: ${price || '-'}
+🕒 ${log.time}
 `;
 
-itemsDetailed.forEach(item => { telegramText += • ${item.name} x${item.qty} ${item.image ? item.image : ''} ; });
+    await sendToTelegram(text);
 
-    telegramText += `\n🕒 ${created_at}`;
+    // =========================
+    // 📸 IMAGE (если есть)
+    // =========================
+    if (image) {
+        await sendPhoto(image, `${name || 'Товар'} x1`);
+    }
 
-    sendToTelegram(telegramText);
-
-    console.log('ORDER RECEIVED:', log);
+    console.log('EVENT:', log);
 
     res.json({ status: 'ok' });
 });
