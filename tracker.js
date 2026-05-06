@@ -53,7 +53,7 @@ app.post('/track', (req, res) => {
         return res.status(400).json({ error: 'Invalid data' });
     }
 
-    const created_at = new Date().toISOString();
+    const created_at = new Date();
 
     const itemsText = Array.isArray(items)
         ? items.map(i => `${i.name} x${i.qty}`).join(', ')
@@ -81,7 +81,7 @@ app.post('/track', (req, res) => {
     // 🤖 TELEGRAM
     // =========================
     sendToTelegram(`
-🔥 <b>Новая заявка</b>
+🔥 <b>Новый заказ 🤑</b>
 
 🆔 <b>ID:</b> ${order_id || 'нет'}
 👤 <b>Имя:</b> ${name || '-'}
