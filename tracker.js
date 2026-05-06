@@ -103,8 +103,6 @@ app.post('/track', (req, res) => {
 `;
 
     itemsDetailed.forEach(item => {
-        telegramText += `
-• ${item.name} x${item.qty}
 ${item.image ? item.image : ''}
 `;
     });
