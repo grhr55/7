@@ -13,7 +13,7 @@ app.use(cors({
 app.use(express.json());
 
 const BOT_TOKEN = '8685099869:AAFt96aUAMtjZk-Ga1KReroDmpPpTd9y5hI';
-const CHAT_ID = '@@jcjjcjjduxh';
+const CHAT_ID = '@zakazhyh';
 
 // =========================
 // 🤖 TELEGRAM
