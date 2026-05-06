@@ -37,20 +37,30 @@ async function sendToTelegram(text) {
 // =========================
 // 📸 PHOTO
 // =========================
-async function sendPhoto(url, caption = '') {
+async function sendAlbum(items) {
     try {
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+
+        const media = items
+            .filter(i => i.image)
+            .map(i => ({
+                type: "photo",
+                media: i.image,
+                caption: `🛒 ${i.name} x${i.qty}`
+            }));
+
+        if (media.length === 0) return;
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
-                photo: url,
-                caption,
-                parse_mode: "HTML"
+                media: media
             })
         });
+
     } catch (e) {
-        console.error('Telegram photo error:', e);
+        console.error('Telegram album error:', e);
     }
 }
 
