@@ -81,9 +81,8 @@ app.post('/track', (req, res) => {
     // 🤖 TELEGRAM
     // =========================
     sendToTelegram(`
-🔥 <b>Новый заказ 🤑</b>
+  <b>Новый заказ 🤑</b>
 
-🆔 <b>ID:</b> ${order_id || 'нет'}
 👤 <b>Имя:</b> ${name || '-'}
 📞 <b>Телефон:</b> ${phone || '-'}
 📧 <b>Email:</b> ${email || '-'}
