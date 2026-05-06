@@ -100,7 +100,6 @@ app.post('/track', (req, res) => {
 📞 <b>Телефон:</b> ${phone || '-'}
 📧 <b>Email:</b> ${email || '-'}
 💰 <b>Сумма:</b> ${total || '-'}
-🛒 <b>Товары:</b>
 `;
 
     itemsDetailed.forEach(item => {
