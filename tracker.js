@@ -67,7 +67,7 @@ async function sendAlbum(items) {
 // =========================
 // 🚀 API
 // =========================
-app.post('/track', async (req, res) => {
+app.post('/track', (req, res) => {
 
     const {
         order_id,
@@ -82,11 +82,12 @@ app.post('/track', async (req, res) => {
         return res.status(400).json({ error: 'Invalid data' });
     }
 
-    const created_at = new Date().toISOString();
+    const created_at = new Date();
 
     // =========================
-    // 🧠 ITEMS
+    // 🧠 ОБРАБОТКА ТОВАРОВ С КАРТИНКАМИ
     // =========================
+    let itemsText = '';
     let itemsDetailed = [];
 
     if (Array.isArray(items)) {
@@ -95,10 +96,14 @@ app.post('/track', async (req, res) => {
             qty: i.qty,
             image: i.image || ''
         }));
+
+        itemsText = itemsDetailed
+            .map(i => `${i.name} x${i.qty}`)
+            .join(', ');
     }
 
     // =========================
-    // 🗂️ LOG FILE
+    // 🗂️ ЛОГ В ФАЙЛ
     // =========================
     const log = {
         order_id,
@@ -110,27 +115,34 @@ app.post('/track', async (req, res) => {
         created_at
     };
 
-    fs.appendFileSync('orders.log', JSON.stringify(log) + '\n');
+    fs.appendFileSync(
+        'orders.log',
+        JSON.stringify(log) + '\n'
+    );
 
     // =========================
-    // 🤖 TEXT MESSAGE
+    // 🤖 TELEGRAM (С КАРТИНКАМИ)
     // =========================
-    let text = `
+    let telegramText = `
 <b>Новый заказ 🤑</b>
 
 👤 <b>Имя:</b> ${name || '-'}
 📞 <b>Телефон:</b> ${phone || '-'}
 📧 <b>Email:</b> ${email || '-'}
 💰 <b>Сумма:</b> ${total || '-'}
-🕒 ${created_at}
+🛒 <b>Товары:</b>
 `;
 
-    await sendToTelegram(text);
+    itemsDetailed.forEach(item => {
+        telegramText += `
+• ${item.name} x${item.qty}
+${item.image ? item.image : ''}
+`;
+    });
 
-    // =========================
-    // 📸 PHOTO ALBUM
-    // =========================
-    await sendAlbum(itemsDetailed);
+    telegramText += `\n🕒 ${created_at}`;
+
+    sendToTelegram(telegramText);
 
     console.log('ORDER RECEIVED:', log);
 
