@@ -133,12 +133,7 @@ app.post('/track', (req, res) => {
 🛒 <b>Товары:</b>
 `;
 
-    itemsDetailed.forEach(item => {
-        telegramText += `
-• ${item.name} x${item.qty}
- ${item.image ? item.image : ''}
-`;
-    });
+itemsDetailed.forEach(item => { telegramText += • ${item.name} x${item.qty} ${item.image ? item.image : ''} ; });
 
     telegramText += `\n🕒 ${created_at}`;
 
