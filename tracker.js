@@ -16,7 +16,7 @@ const BOT_TOKEN = '8685099869:AAFt96aUAMtjZk-Ga1KReroDmpPpTd9y5hI';
 const CHAT_ID = '@zakazhyh';
 
 // =========================
-// 🤖 TEXT
+// 🤖 TEXT MESSAGE
 // =========================
 async function sendToTelegram(text) {
     try {
@@ -35,14 +35,14 @@ async function sendToTelegram(text) {
 }
 
 // =========================
-// 📸 PHOTO
+// 📸 ALBUM (ФОТО ТОВАРОВ)
 // =========================
 async function sendAlbum(items) {
     try {
 
         const media = items
             .filter(i => i.image)
-            .map(i => ({
+            .map((i, index) => ({
                 type: "photo",
                 media: i.image,
                 caption: `🛒 ${i.name} x${i.qty}`
@@ -82,7 +82,7 @@ app.post('/track', async (req, res) => {
         return res.status(400).json({ error: 'Invalid data' });
     }
 
-    const created_at = new Date();
+    const created_at = new Date().toISOString();
 
     // =========================
     // 🧠 ITEMS
@@ -128,18 +128,9 @@ app.post('/track', async (req, res) => {
     await sendToTelegram(text);
 
     // =========================
-    // 📸 PHOTOS
+    // 📸 PHOTO ALBUM
     // =========================
-    for (const item of itemsDetailed) {
-
-        const caption = `🛒 <b>${item.name}</b>\nКоличество: ${item.qty}`;
-
-        if (item.image) {
-            await sendPhoto(item.image, caption);
-        } else {
-            await sendToTelegram(caption);
-        }
-    }
+    await sendAlbum(itemsDetailed);
 
     console.log('ORDER RECEIVED:', log);
 
